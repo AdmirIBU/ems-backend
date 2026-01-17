@@ -5,7 +5,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: 'user' | 'admin';
+  // 'user' is kept for backward compatibility; treat it as 'student'
+  role: 'student' | 'professor' | 'admin' | 'user';
   matchPassword(password: string): Promise<boolean>;
 }
 
@@ -14,7 +15,8 @@ const userSchema = new mongoose.Schema<IUser>(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' }
+    // default to 'student' going forward; allow legacy 'user'
+    role: { type: String, enum: ['student', 'professor', 'admin', 'user'], default: 'student' }
   },
   { timestamps: true }
 );
