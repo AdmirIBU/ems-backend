@@ -5,7 +5,7 @@ Node.js + Express backend for the Exam Management System (EMS).
 ## Features
 - Express server
 - MongoDB using Mongoose
-- Authentication (register/login) with JWT
+- Authentication (login) with JWT
 - Example `Exam` resource with CRUD
 - Dockerfile and docker-compose for local development
 
@@ -31,8 +31,8 @@ The script is idempotent:
 - If the user exists, it promotes them to `admin` (and updates password only if provided).
 
 ## API
-- POST `/api/auth/register` - register
 - POST `/api/auth/login` - login
+- User creation is handled by admins via `POST /api/admin/users` (requires `admin` role).
 - GET `/api/exams` - list exams
 - POST `/api/exams` - create exam (requires Authorization: Bearer <token>) (required fields: `title`, `date`, `examType`, `numQuestions`)
 
