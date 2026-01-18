@@ -15,7 +15,9 @@ export const listStudents = async (req: Request, res: Response, next: NextFuncti
     let query: any = { role: { $in: ['student', 'user'] } };
 
     if (requesterRole === 'professor') {
-      const courses = await Course.find({ createdBy: requester?._id }).select('students').exec();
+      const courses = await Course.find({ $or: [{ professors: requester?._id }, { createdBy: requester?._id }] })
+        .select('students')
+        .exec();
       const studentIds = new Set<string>();
       for (const c of courses) {
         for (const s of c.students ?? []) studentIds.add(String(s));
@@ -43,11 +45,21 @@ export const listStudents = async (req: Request, res: Response, next: NextFuncti
 
 export const lookupStudentByEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const requester = (req as any).user as any;
+    const requesterRole = String(requester?.role ?? '').toLowerCase();
     const email = String(req.query.email ?? '').trim().toLowerCase();
     if (!email) return res.status(400).json({ error: 'email is required' });
 
-    const user = await User.findOne({ email }).select('-password').exec();
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const user = await User.findOne({ email, role: { $in: ['student', 'user'] } }).select('-password').exec();
+    if (!user) return res.status(404).json({ error: 'Student not found' });
+
+    if (requesterRole === 'professor') {
+      const taughtCourseCount = await Course.countDocuments({
+        students: user._id,
+        $or: [{ professors: requester?._id }, { createdBy: requester?._id }],
+      }).exec();
+      if (taughtCourseCount === 0) return res.status(404).json({ error: 'Student not found' });
+    }
 
     res.json({ id: user._id, name: user.name, email: user.email, role: (user as any).role });
   } catch (err) {
@@ -57,9 +69,19 @@ export const lookupStudentByEmail = async (req: Request, res: Response, next: Ne
 
 export const getStudentReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const requester = (req as any).user as any;
+    const requesterRole = String(requester?.role ?? '').toLowerCase();
     const studentId = req.params.id;
     const student = await User.findById(studentId).select('-password').exec();
     if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    if (requesterRole === 'professor') {
+      const taughtCourseCount = await Course.countDocuments({
+        students: student._id,
+        $or: [{ professors: requester?._id }, { createdBy: requester?._id }],
+      }).exec();
+      if (taughtCourseCount === 0) return res.status(403).json({ error: 'Forbidden' });
+    }
 
     const courses = await Course.find({ students: student._id }).select('title courseCode ects').exec();
 
