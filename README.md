@@ -15,6 +15,21 @@ Node.js + Express backend for the Exam Management System (EMS).
 3. Start in dev: `npm run dev`
 4. Or with Docker: `docker-compose up --build`
 
+## Create a super admin
+This project uses the `admin` role as the highest-privileged role. You can create (or promote) an admin user via:
+
+- Build first (required so `dist/` exists): `npm run build`
+- Then run: `npm run create-super-admin -- --email you@example.com --password "a-strong-password" --name "Super Admin"`
+
+You can also provide values via environment variables:
+- `SUPER_ADMIN_EMAIL` (or `ADMIN_EMAIL`)
+- `SUPER_ADMIN_PASSWORD` (or `ADMIN_PASSWORD`) (required if the user does not exist)
+- `SUPER_ADMIN_NAME` (or `ADMIN_NAME`)
+
+The script is idempotent:
+- If the user does not exist, it creates an `admin` user.
+- If the user exists, it promotes them to `admin` (and updates password only if provided).
+
 ## API
 - POST `/api/auth/register` - register
 - POST `/api/auth/login` - login
