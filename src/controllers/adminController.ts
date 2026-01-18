@@ -4,17 +4,48 @@ import { normalizeRole } from '../utils/roles';
 
 export const listUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 }).exec();
-    res.json(
-      users.map((u) => ({
-        id: u._id,
-        name: u.name,
-        email: u.email,
-        role: normalizeRole(u.role),
-        createdAt: (u as any).createdAt,
-        updatedAt: (u as any).updatedAt,
-      }))
-    );
+    const hasPaginationParams = req.query.page !== undefined || req.query.limit !== undefined;
+
+    const mapUser = (u: any) => ({
+      id: u._id,
+      name: u.name,
+      email: u.email,
+      role: normalizeRole(u.role),
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    });
+
+    if (!hasPaginationParams) {
+      const users = await User.find().select('-password').sort({ createdAt: -1 }).exec();
+      res.json(users.map(mapUser));
+      return;
+    }
+
+    const pageRaw = Array.isArray(req.query.page) ? req.query.page[0] : req.query.page;
+    const limitRaw = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
+
+    const page = Math.max(1, Number(pageRaw ?? 1) || 1);
+    const limit = Math.min(100, Math.max(1, Number(limitRaw ?? 10) || 10));
+
+    const [total, users] = await Promise.all([
+      User.countDocuments().exec(),
+      User.find()
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    res.json({
+      items: users.map(mapUser),
+      total,
+      page,
+      limit,
+      totalPages,
+    });
   } catch (err) {
     next(err);
   }
