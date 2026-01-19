@@ -30,6 +30,20 @@ The script is idempotent:
 - If the user does not exist, it creates an `admin` user.
 - If the user exists, it promotes them to `admin` (and updates password only if provided).
 
+## Seed demo data
+
+Set these environment variables in Render for the backend service:
+- `SEED_ON_STARTUP=true`
+
+Option A: provide explicit demo credentials:
+- `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME`
+- `SEED_PROF_EMAIL`, `SEED_PROF_PASSWORD`, `SEED_PROF_NAME`
+- `SEED_STUDENT_EMAIL`, `SEED_STUDENT_PASSWORD`, `SEED_STUDENT_NAME`
+
+Option B:
+- `SEED_USE_DEFAULTS=true`
+
+
 ## API
 - POST `/api/auth/login` - login
 - User creation is handled by admins via `POST /api/admin/users` (requires `admin` role).
