@@ -378,7 +378,7 @@ export async function maybeSeedDemoData() {
       { question: q1._id.toString(), answer: 'POST', isCorrect: true, maxPoints: 2, pointsAwarded: 2 },
       { question: q2._id.toString(), answer: true, isCorrect: true, maxPoints: 1, pointsAwarded: 1 },
       { question: q3._id.toString(), answer: 'Authentication verifies identity; authorization verifies permissions.', maxPoints: 5, pointsAwarded: 0 },
-      { question: q4._id.toString(), answer: { note: 'Seeded placeholder (upload via UI to replace).' }, maxPoints: 2, pointsAwarded: 0 },
+      { question: q4._id.toString(), answer: '', maxPoints: 2, pointsAwarded: 0 },
     ],
   });
 
